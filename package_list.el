@@ -5,17 +5,23 @@
 (setq required-pkgs
       '(
         ace-jump-mode
+        alert
         auctex
-        auto-complete-auctex
         auto-complete
+        auto-complete-auctex
         bison-mode
-        elpy
         company
+        dash
+        elpy
+        epl
         expand-region
         find-file-in-project
-        flx-ido
         flx
+        flx-ido
         fuzzy
+        gh
+        git-commit-mode
+        git-rebase-mode
         highlight-indentation
         ibuffer-projectile
         ido-at-point
@@ -29,23 +35,17 @@
         json-mode
         json-reformat
         json-snatcher
-        magit-gh-pulls
-        magit
-        git-rebase-mode
-        git-commit-mode
-        gh
         logito
+        magit
+        magit-gh-pulls
         multiple-cursors
         nose
         org
         org-plus-contrib
-        alert
         pcache
+        pkg-info
         popup
         projectile
-        pkg-info
-        epl
-        dash
         pyvenv
         s
         smex

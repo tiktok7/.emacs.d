@@ -20,15 +20,14 @@
 (setq tab-width 4)
 (setq c-basic-offset 4)
 
-(setq uniquify-buffer-name-style (quote forward) nil (uniquify))
-
+(require 'uniquify)
+(setq uniquify-buffer-name-style "forward")
 
 ;; cua
 (setq cua-delete-copy-to-register-0 nil)
 (setq cua-enable-cua-keys nil)
 (setq cua-enable-region-auto-help t)
 (setq cua-highlight-region-shift-only t)
-(setq cua-mode nil nil (cua-base))
 (setq cua-toggle-set-mark nil)
 
 ;; =======
@@ -88,8 +87,8 @@
 (define-key yas-minor-mode-map (kbd "TAB") nil)
 (define-key yas-minor-mode-map (kbd "C-c C-i") 'yas-expand)
 (setq yas-also-auto-indent-first-line nil)
-(setq yas-global-mode t nil (yasnippet))
-(setq yas-prompt-functions (quote (yas-ido-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-no-prompt))))
+(setq yas-global-mode t)
+(setq yas-prompt-functions (quote (yas-ido-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-no-prompt)))
 
 (require 'auto-complete-config)
 (ac-config-default)
@@ -138,5 +137,6 @@
     (brace-list-open +)   ; all "opens" should be indented by the c-indent-level
     (case-label +))       ; indent case labels by c-indent-level, too
 )
+
 
 (provide 'misc-settings)
