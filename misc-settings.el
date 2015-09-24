@@ -4,24 +4,23 @@
 (show-paren-mode t)
 (setq display-time-24hr-format t)
 (setq display-time-day-and-date t)
-(setq display-time-mode t)
-(setq electric-indent-mode t)
-(setq electric-layout-mode t)
-(setq electric-pair-mode t)
-(setq column-number-mode t)
+(display-time-mode t)
+(electric-indent-mode t)
+(electric-layout-mode t)
+(electric-pair-mode t)
+(column-number-mode t)
 
 (setq backup-by-copying-when-linked t)
-(setq global-auto-complete-mode t)
+(global-auto-complete-mode t)
 (setq iedit-transient-mark-sensitive nil)
-(setq indent-tabs-mode nil)
-(setq projectile-global-mode t)
+(projectile-global-mode t)
 (setq projectile-use-git-grep t)
 
 (setq tab-width 4)
 (setq c-basic-offset 4)
 
 (require 'uniquify)
-(setq uniquify-buffer-name-style "forward")
+(setq uniquify-buffer-name-style 'post-forward)
 
 ;; cua
 (setq cua-delete-copy-to-register-0 nil)
@@ -87,7 +86,7 @@
 (define-key yas-minor-mode-map (kbd "TAB") nil)
 (define-key yas-minor-mode-map (kbd "C-c C-i") 'yas-expand)
 (setq yas-also-auto-indent-first-line nil)
-(setq yas-global-mode t)
+(yas-global-mode t)
 (setq yas-prompt-functions (quote (yas-ido-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-no-prompt)))
 
 (require 'auto-complete-config)

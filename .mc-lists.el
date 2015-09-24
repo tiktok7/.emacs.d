@@ -3,28 +3,29 @@
 
 (setq mc/cmds-to-run-for-all
       '(
-        bison-electric-close-brace
-        bison-electric-colon
-        bison-electric-greater-than
-        bison-electric-less-than
-        bison-electric-percent
-        bison-electric-semicolon
-        c-electric-brace
-        c-electric-delete-forward
-        c-electric-paren
-        c-electric-semi&comma
-        dabbrev-expand
-        indent-for-tab-command
-        jc/mc-search-backward
-        jc/mc-search-forward
-        kill-region
-        nxml-electric-slash
-        org-force-self-insert
-        org-self-insert-command
-        python-indent-electric-colon
-        ))
+	bison-electric-close-brace
+	bison-electric-colon
+	bison-electric-greater-than
+	bison-electric-less-than
+	bison-electric-percent
+	bison-electric-semicolon
+	c-electric-brace
+	c-electric-delete-forward
+	c-electric-paren
+	c-electric-semi&comma
+	dabbrev-expand
+	delete-indentation
+	indent-for-tab-command
+	jc/mc-search-backward
+	jc/mc-search-forward
+	kill-region
+	nxml-electric-slash
+	org-force-self-insert
+	org-self-insert-command
+	python-indent-electric-colon
+	))
 
 (setq mc/cmds-to-run-once
       '(
-        shell
-        ))
+	shell
+	))
