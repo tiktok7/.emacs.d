@@ -20,6 +20,7 @@
         flx-ido
         fuzzy
         gh
+        gh-md
         git-commit-mode
         git-rebase-mode
         highlight-indentation
@@ -38,6 +39,7 @@
         logito
         magit
         magit-gh-pulls
+        markdown-mode
         multiple-cursors
         nose
         org

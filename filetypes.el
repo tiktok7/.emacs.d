@@ -11,6 +11,6 @@ structures to be hightlighted.  It is on by default.
  
 " t nil)
 (add-to-list 'auto-mode-alist '("\\.\\(?:bat\\|com\\|cmd\\)$" . bat-mode))
-
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
 (provide 'filetypes)
