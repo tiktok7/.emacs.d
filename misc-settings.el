@@ -16,6 +16,9 @@
 (projectile-global-mode t)
 (setq projectile-use-git-grep t)
 
+(setq split-height-threshold nil)
+(setq split-width-threshold 0)
+
 (setq tab-width 4)
 (setq c-basic-offset 4)
 

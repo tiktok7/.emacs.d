@@ -12,5 +12,7 @@ structures to be hightlighted.  It is on by default.
 " t nil)
 (add-to-list 'auto-mode-alist '("\\.\\(?:bat\\|com\\|cmd\\)$" . bat-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+(autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
+(add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
 
 (provide 'filetypes)

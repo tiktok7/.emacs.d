@@ -49,6 +49,8 @@
         popup
         projectile
         pyvenv
+	qml-mode
+	company-qml
         s
         smex
         yasnippet

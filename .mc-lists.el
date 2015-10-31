@@ -20,6 +20,7 @@
 	jc/mc-search-forward
 	kill-region
 	markdown-cycle
+	markdown-exdent-or-delete
 	nxml-electric-slash
 	org-force-self-insert
 	org-self-insert-command
