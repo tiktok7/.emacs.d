@@ -1,8 +1,8 @@
 (server-start)
 (package-initialize)
-(elpy-enable)                          
+;;(elpy-enable)                          
 
-(add-to-list 'load-path "~/.emacs.d")
+(add-to-list 'load-path "~/.emacs.d/lisp")
 
 ;; configuration packages
 (require 'package_list)
@@ -17,6 +17,6 @@
 
 (setq custom-file "~/.emacs-custom.el")
 (load custom-file)
-
+(powerline-default-theme)
 (require 'disabled)
 

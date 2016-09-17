@@ -39,6 +39,7 @@
 (setq ido-everywhere t)
 (ido-mode 1)
 (setq ido-create-new-buffer 'always)
+(setq ido-vertical-define-keys (quote C-n-C-p-up-down-left-right))
  
 ;; ==================================================
 ;; ace jump mode

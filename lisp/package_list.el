@@ -1,6 +1,6 @@
 (require 'check_packages)
 
-(setq package-archives (quote (("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.milkbox.net/packages/") ("marmalade" . "http://marmalade-repo.org/packages/") ("orgmode" . "http://orgmode.org/elpa/"))))
+(setq package-archives (quote (("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.org/packages/") ("orgmode" . "http://orgmode.org/elpa/"))))
 
 (setq required-pkgs
       '(
@@ -21,8 +21,6 @@
         fuzzy
         gh
         gh-md
-        git-commit-mode
-        git-rebase-mode
         highlight-indentation
         ibuffer-projectile
         ido-at-point
@@ -40,6 +38,7 @@
         magit
         magit-gh-pulls
         markdown-mode
+	mozc
         multiple-cursors
         nose
         org
@@ -47,12 +46,14 @@
         pcache
         pkg-info
         popup
+	powerline
         projectile
         pyvenv
 	qml-mode
 	company-qml
         s
         smex
+	solarized-theme
         yasnippet
         ))
 
