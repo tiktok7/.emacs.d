@@ -14,5 +14,7 @@ structures to be hightlighted.  It is on by default.
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 (autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
 (add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+(add-to-list 'auto-mode-alist '("\\.json$" . js-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
 (provide 'filetypes)

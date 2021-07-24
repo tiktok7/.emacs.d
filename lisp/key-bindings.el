@@ -1,5 +1,6 @@
 
 ;; misc
+(global-set-key (kbd "M-_") 'undo)
 (global-set-key "\C-xra" 'append-to-register)
 (global-set-key "\C-xrp" 'prepend-to-register)
 (global-set-key (kbd "C-x C-p") 'camdez/show-buffer-file-name)
@@ -14,8 +15,8 @@
 (global-set-key (kbd "C-M-!") 'shell-with-fname-repl)
 
 ;; ace-jump
-(define-key global-map (kbd "C-ü") 'ace-jump-mode)
-(define-key global-map (kbd "C-Ü") 'ace-jump-mode-pop-mark)
+(define-key global-map (kbd "C-@") 'ace-jump-mode)
+(define-key global-map (kbd "C-`") 'ace-jump-mode-pop-mark)
 
 
 ;; org-mode
@@ -38,11 +39,11 @@
 ;; ==================================================
 ;; expand-region
 ;; ==================================================
-(global-set-key (kbd "C-Ö") 'er/contract-region)
-(global-set-key (kbd "C-ö") 'er/expand-region)
+(global-set-key (kbd "C-+") 'er/contract-region)
+(global-set-key (kbd "C-;") 'er/expand-region)
 
-(global-set-key (kbd "C-ä") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
-(global-set-key (kbd "C-Ä") 'mc/mark-more-like-this-extended) ;;  Use arrow keys to quickly mark/skip next/previous occurances.
+(global-set-key (kbd "C-:") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
+(global-set-key (kbd "C-*") 'mc/mark-more-like-this-extended) ;;  Use arrow keys to quickly mark/skip next/previous occurances.
  
 ;; (global-set-key (kbd "C-ä C-n") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
 ;; (global-set-key (kbd "C-ä C-w") 'mc/mark-next-word-like-this) ;;  Like mc/mark-next-like-this but only for whole words.

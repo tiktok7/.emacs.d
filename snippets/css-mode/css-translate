@@ -1,0 +1,5 @@
+# key: trans
+# name: css-transform
+# --
+transform:${1: translateX($2)}${3: translateY($4)}${5: rotate($6deg)};
+$0

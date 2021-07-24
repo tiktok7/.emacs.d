@@ -6,3 +6,9 @@
 /session.*
 /url/
 *~
+projectile.cache
+recentf
+server/
+smex-items
+transient/
+ido.last

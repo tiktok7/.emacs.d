@@ -11,10 +11,11 @@
 (column-number-mode t)
 
 (setq backup-by-copying-when-linked t)
-(global-auto-complete-mode t)
+
 (setq iedit-transient-mark-sensitive nil)
 (projectile-global-mode t)
 (setq projectile-use-git-grep t)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
 (setq split-height-threshold nil)
 (setq split-width-threshold 0)
@@ -68,22 +69,9 @@
 (defvar jc/mc-search--last-term nil) 
 (define-key mc/keymap (kbd "C-s") 'jc/mc-search-forward)
 (define-key mc/keymap (kbd "C-r") 'jc/mc-search-backward)
- 
-;; ==========================================================================
-;; "Do what I Want" TAB behaviour for yasnippet auto-complete and org-mode
-;; ==========================================================================
-(require 'auto-complete)
-(define-key ac-completing-map (kbd "TAB") 'ac-complete)
-(define-key ac-completing-map (kbd "<tab>") 'ac-complete)
-(setq ac-auto-show-menu 1.0)
-(setq ac-auto-start nil)
-(setq ac-delay 0.1)
-(setq ac-disable-inline t)
-(setq ac-dwim nil)
-(setq ac-trigger-key "TAB")
-(setq ac-use-menu-map t)
- 
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/dict")
+(define-key mc/keymap (kbd "C-:") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
+(define-key mc/keymap (kbd "C-*") 'mc/mark-more-like-this-extended) ;;  Use arrow keys to quickly mark/skip next/previous occurances.
+
  
 (require 'yasnippet)
 (define-key yas-minor-mode-map (kbd "<tab>") nil)
@@ -93,9 +81,7 @@
 (yas-global-mode t)
 (setq yas-prompt-functions (quote (yas-ido-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-no-prompt)))
 
-(require 'auto-complete-config)
-(ac-config-default)
-(setq-default ac-sources '(ac-source-abbrev ac-source-dictionary ac-source-words-in-same-mode-buffers))
+
 
 ;; ==========
 ;; japanese
