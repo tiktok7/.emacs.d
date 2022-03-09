@@ -22,6 +22,8 @@
 	markdown-cycle
 	markdown-exdent-or-delete
 	nxml-electric-slash
+	org-delete-char
+	org-end-of-line
 	org-force-self-insert
 	org-self-insert-command
 	python-indent-electric-colon

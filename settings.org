@@ -1,0 +1,639 @@
+#+STARTUP: content
+
+* disabled emacs functions
+#+begin_src emacs-lisp :tangle yes
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+#+end_src
+
+* overall config settings
+switch these to nil to avoid extra installation on temp pcs
+#+begin_src emacs-lisp :tangle yes
+  (setq wwgs-web-dev t)			; web development
+  (setq wwgs-python-dev t)		; python development
+  (setq wwgs-docker-dev t)
+#+end_src
+* package manager
+#+begin_src emacs-lisp :tangle yes
+(setq package-archives (quote (("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.org/packages/") ("orgmode" . "http://orgmode.org/elpa/"))))
+#+end_src
+
+* window settings
+#+begin_src emacs-lisp :tangle yes
+(when (fboundp 'windmove-default-keybindings)
+  (windmove-default-keybindings))
+(setq window-min-width 80)
+(setq display-buffer-alist
+   `(;; Display *Help* buffer at the bottom-most slot
+     ("*\\(Help\\|trace-\\|Backtrace\\|RefTeX.*\\)"
+      (display-buffer-reuse-window display-buffer-in-previous-window display-buffer-in-side-window)
+      (side . right)
+      (slot . 0)
+      (window-width . 0.5)
+      (reusable-frames . visible))
+     ("^\\*info"
+      (display-buffer-reuse-window display-buffer-in-previous-window display-buffer-pop-up-frame)
+      (pop-up-frame-parameters
+        (width . 80)
+        (left . 1.0)
+        (fullscreen . fullheight)))
+     ;; Open new edited messages in a right-hand frame
+     ;; For this to close the frame, add
+     ;; (add-hook 'wl-draft-kill-pre-hook 'quit-window)
+     ;; (setq wl-draft-send-function
+     ;;   (lambda (buffer kill)
+     ;;     (let ((frame (window-frame (selected-window))))
+     ;;       (prog1 (wl-draft-normal-send-func buffer kill)
+     ;;         (delete-frame frame)))))
+     ("\\(\\*draft\\*\\|Draft/\\)"
+      (display-buffer-reuse-window display-buffer-in-previous-window display-buffer-pop-up-frame)
+      (pop-up-frame-parameters
+        (width . 80)
+        (left . 1.0)
+        (fullscreen . fullheight)))
+     ;; TeX output buffers to bottom, with 10 lines
+     ;; Split shells at the bottom
+     ("^\\*e?shell"
+      (display-buffer-reuse-window display-buffer-in-previous-window display-buffer-below-selected)
+      (window-min-height . 20)
+      (reusable-frames . visible)
+      )
+     )
+   )
+#+end_src
+
+* language server protocol
+#+begin_src emacs-lisp :tangle yes
+            (when (or wwgs-python-dev wwgs-web-dev)
+                      (use-package lsp-mode
+                        :ensure t
+                        :hook
+                        (python-mode . lsp-deferred)
+                        (php-mode . lsp-deferred)
+                        :commands
+                        (lsp lsp-deferred)
+                        :init
+                        (setq gc-cons-threshold 100000000)
+                        (setq read-process-output-max (* 1024 1024)) ;; 1mb
+                        (setq lsp-idle-delay 0.500)
+                        :config
+                        (add-to-list 'lsp-enabled-clients 'iph)))
+            (when wwgs-python-dev (use-package lsp-jedi
+                                    :ensure t
+                                    :after
+                                    (lsp-mode)
+                                    :config
+                                    (with-eval-after-load "lsp-mode"
+                                      (add-to-list 'lsp-disabled-clients 'pyls)
+                                      (add-to-list 'lsp-enabled-clients 'jedi))))
+#+end_src
+
+* docker
+#+begin_src emacs-lisp :tangle yes
+  (when wwgs-docker-dev
+    (use-package docker-compose-mode
+      :defer t
+      :ensure t
+      :mode ("compose.*\\.yml\\'" . docker-compose-mode)
+      )
+    (use-package dockerfile-mode
+      :defer t
+      :ensure t
+      :mode ("Dockerfile" . dockerfile-mode)
+      )
+    )
+#+end_src
+* php settings
+#+begin_src emacs-lisp :tangle yes
+  (when wwgs-web-dev
+    (use-package web-mode
+      :mode ("\\.phtml\\'" . web-mode)
+      :mode ("\\.tpl\\.php\\'" . web-mode)
+      :mode ("\\.html\\.twig\\'" . web-mode)
+      :mode ("\\.html?\\'" . web-mode)
+      :bind(
+            :map web-mode-map
+                 ("C-c b" . web-mode-buffer-indent)
+                 ("C-M-u" . web-mode-element-parent)
+                 ("C-M-d" . web-mode-element-child)
+                 ("C-M-n" . web-mode-element-sibling-next)
+                 ("C-M-p" . web-mode-element-sibling-previous)
+                 )
+      :config
+          (setq tab-width 4)
+          (unbind-key "C-c TAB" web-mode-map)
+      )
+    (use-package mmm-mode
+      :ensure t
+      :init
+      (setq mmm-global-mode 'maybe)
+      :config
+      (mmm-add-mode-ext-class 'html-mode "\\.php\\'" 'html-php))
+  
+    (use-package php-mode
+      :ensure t
+      :requires web-mode)
+  )
+#+end_src
+
+
+* javascript settings
+#+begin_src emacs-lisp :tangle yes
+;; js settings
+(require 'js2-mode)
+(add-hook 'js2-mode-hook #'js2-imenu-extras-mode) ;; Better imenu
+(setq js2-highlight-level 3)
+(define-key js-mode-map "{" 'paredit-open-curly)
+(define-key js-mode-map "}" 'paredit-close-curly-and-newline)
+
+(require 'js2-refactor)
+(require 'xref-js2)
+(add-hook 'js2-mode-hook #'js2-refactor-mode)
+(js2r-add-keybindings-with-prefix "C-c C-r")
+(define-key js2-mode-map (kbd "C-k") #'js2r-kill)
+
+
+;; js-mode (which js2 is based on) binds "M-." which conflicts with xref, so
+;; unbind it.
+(define-key js-mode-map (kbd "M-.") nil)
+
+(add-hook 'js2-mode-hook (lambda ()
+  (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t)))
+
+(add-hook 'js-mode-hook (lambda () (tern-mode t)))
+(eval-after-load 'tern
+   '(progn
+      (require 'tern-auto-complete)
+      (tern-ac-setup)))
+
+(defun delete-tern-process ()
+  (interactive)
+  (delete-process "Tern"))
+
+(defun my-paredit-nonlisp ()
+  "Turn on paredit mode for non-lisps."
+  (interactive)
+  (set (make-local-variable 'paredit-space-for-delimiter-predicates)
+       '((lambda (endp delimiter) nil)))
+  (paredit-mode 1))
+
+(add-hook 'js-mode-hook 'my-paredit-nonlisp) ;use with the above function
+
+(require 'web-mode)
+(setq web-mode-enable-auto-expanding t)
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.css?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . web-mode))
+(eval-after-load 'flycheck
+  '(flycheck-add-mode 'html-tidy 'web-mode))
+(define-key web-mode-map (kbd "TAB") 'company-web-html)
+(setq web-mode-enable-current-column-highlight t)
+(setq web-mode-enable-current-element-highlight t)
+
+(defun my-web-mode-hook ()
+  (set (make-local-variable 'company-backends) '(company-web-slim company-web-jade company-css company-web-html company-yasnippet company-files))
+  )
+
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+
+(require 'emmet-mode)
+(add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+(add-hook 'html-mode-hook 'emmet-mode)
+(add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+(add-hook 'web-mode-hook  'emmet-mode)
+(add-hook 'web-mode-hook  'rainbow-mode)
+
+(add-hook 'web-mode-before-auto-complete-hooks
+    '(lambda ()
+     (let ((web-mode-cur-language
+  	    (web-mode-language-at-pos)))
+               (if (string= web-mode-cur-language "php")
+    	   (yas-activate-extra-mode 'php-mode)
+      	 (yas-deactivate-extra-mode 'php-mode))
+               (if (string= web-mode-cur-language "css")
+    	   (setq emmet-use-css-transform t)
+      	   (setq emmet-use-css-transform nil)))))
+
+#+end_src
+* python settings
+#+begin_src emacs-lisp :tangle yes
+  (when wwgs-python-dev (use-package python
+    :ensure t
+    :mode ("\\.py\\'" . python-mode)
+    :interpreter ("python" . python-mode)
+    :requires python-mode
+    :config
+        (setq python-check-command "flake8")
+        (setq python-indent-guess-indent-offset nil)
+        (setq python-shell-buffer-name "Python")
+        (setq python-shell-interpreter "python3")
+        ))
+#+end_src
+* org settings
+#+begin_src emacs-lisp :tangle yes
+(setq org-agenda-custom-commands (quote (("w" todo "WAITING" nil) ("n" todo "NEXT" nil) ("d" "Agenda + Next Actions" ((agenda) (todo "NEXT"))))))
+(setq org-agenda-files (quote ("~")))
+(setq org-agenda-skip-deadline-if-done t)
+(setq org-agenda-skip-scheduled-if-done t)
+(setq org-agenda-sorting-strategy (quote ((agenda time-up priority-down tag-up) (todo tag-up))))
+(setq org-agenda-time-grid (quote ((daily weekly today require-timed) #("----------------" 0 16 (org-heading t)) (800 1000 1200 1400 1600 1800 2000))))
+(setq org-ascii-text-width 151)
+(setq org-babel-ditaa-java-cmd "/usr/bin/ditaa")
+(setq org-babel-load-languages (quote ((emacs-lisp . t) (python . t) (perl . t) (dot . t) (ditaa . t) (plantuml . t))))
+(setq org-clock-out-remove-zero-time-clocks t)
+(setq org-columns-default-format "%25ITEM %TODO %3PRIORITY %TAGS %Effort{:} %6CLOCKSUM{Total}")
+(setq org-confirm-babel-evaluate nil)
+(setq org-deadline-warning-days 7)
+(setq org-ditaa-eps-jar-path "")
+(setq org-ditaa-jar-option "")
+(setq org-ditaa-jar-path "")
+(setq org-export-backends (quote (ascii html icalendar latex odt confluence)))
+(setq org-export-html-postamble t)
+(setq org-export-html-postamble-format (quote (("en" "<p class=\"author\">Author: %a (%e)</p>
+<p class=\"date\">Date: %d</p>
+"))))
+(setq org-export-html-style "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/org.css\" />")
+(setq org-export-with-sub-superscripts (quote {}))
+(setq org-from-is-user-regexp nil)
+(setq org-global-properties (quote (("Effort_ALL" . "0:30 1:00 2:00 4:00 8:00 2d 3d 4d 5d 2w 1m"))))
+(setq org-hide-leading-stars t)
+(setq org-html-creator-string "")
+(setq org-html-mathjax-options (quote ((path "./css/MathJax.js") (scale "100") (align "center") (indent "2em") (mathml nil))))
+(setq org-log-done (quote time))
+
+(setq org-refile-targets (quote ((org-agenda-files :maxlevel . 3))))
+(setq org-src-fontify-natively t)
+(setq org-src-tab-acts-natively t)
+(setq org-startup-indented t)
+(setq org-time-clocksum-use-effort-durations t)
+(setq org-todo-keywords (quote ((type "TODO(t)" "MAYBE(m)" "WAITING" "NEXT(n)" "|" "DONE(d)"))))
+
+(setq org-capture-templates
+'(("t" "Short Todo" entry (file+headline "~/org/gtd.org" "Tasks") "* TODO %i\nAdded: %U")
+   ("l" "Long Todo" entry (file+headline "~/org/gtd.org" "Tasks") "* TODO %^C\n    %i\nAdded: %U")
+   ("m" "Mail Todo" entry (file+headline "~/org/gtd.org" "Tasks") "* TODO %:subject\n    %a\nAdded: %U")
+   ("j" "Journal" entry (file+datetree "~/org/journal.org")
+             "* %?\nEntered on %U\n  %i\n  %a"))
+)
+;; (setq org-default-notes-file (concat org-directory "~/notes.org"))
+(setq org-startup-indented t)
+
+(defun gtd ()
+  (interactive)
+  (find-file "~/org/gtd.org")
+)
+#+end_src
+* disable settings
+#+begin_src emacs-lisp :tangle yes
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)  
+#+end_src
+
+* auto complete
+#+begin_src emacs-lisp :tangle yes
+(require 'company)                                   ; load company mode
+(require 'company-web-html)                          ; load company mode html backend
+;; and/or
+(require 'company-web-jade)                          ; load company mode jade backend
+(require 'company-web-slim)                          ; load company mode slim backend
+#+end_src
+
+* custom functions
+#+begin_src emacs-lisp :tangle yes
+;; ===========================
+;; grab filename to kill ring
+;; ===========================
+(defun camdez/show-buffer-file-name ()
+  "Show the full path to the current file in the minibuffer."
+ (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if file-name
+        (progn
+          (message file-name)
+          (kill-new file-name))
+      (error "Buffer not visiting a file"))))
+
+;; ============
+;; shell->grep
+;; ============
+ 
+(defun ww-shell-to-grep-mode ()
+  (interactive
+   (progn
+     (let((sbuf (current-buffer)))
+       (if (eq major-mode (quote shell-mode))
+        (progn
+           (compilation-mode)
+           (end-of-buffer)
+           (setq compilation-current-error (point))
+           (previous-error)
+           (push-mark)
+           )
+        (progn
+           (shell-mode)
+           (end-of-buffer)
+       (toggle-read-only nil)
+           )
+        )))))
+ 
+(defun eval-and-replace ()
+  "Replace the preceding sexp with its value."
+  (interactive)
+  (backward-kill-sexp)
+  (condition-case nil
+      (prin1 (eval (read (current-kill 0)))
+             (current-buffer))
+    (error (message "Invalid expression")
+           (insert (current-kill 0)))))
+
+;;==============================
+;; shell commands with file replace
+;;==============================
+(defun shell-with-fname-repl ()
+  (interactive)
+  (let ((file-buffer (or (buffer-file-name) ""))
+        (command (read-shell-command "Shell command: " nil nil nil)))
+    (shell-command (replace-regexp-in-string "%" file-buffer command))
+        )
+  (set-buffer "*Shell Command Output*")
+  (compilation-mode)
+)
+
+(defun jc/mc-search (search-command)
+  ;; Read new search term when not repeated command or applying to fake cursors
+  (when (and (not mc--executing-command-for-fake-cursor)
+             (not (eq last-command 'jc/mc-search-forward))
+             (not (eq last-command 'jc/mc-search-backward)))
+    (setq jc/mc-search--last-term (read-from-minibuffer "Search: ")))
+  (funcall search-command jc/mc-search--last-term))
+ 
+(defun jc/mc-search-forward ()
+  "Simplified version of forward search that supports multiple cursors"
+  (interactive)
+  (jc/mc-search 'search-forward))
+ 
+(defun jc/mc-search-backward ()
+  "Simplified version of backward search that supports multiple cursors"
+  (interactive)
+  (jc/mc-search 'search-backward))
+
+(defun yas/org-very-safe-expand ()
+  (let ((yas/fallback-behavior 'return-nil)) (yas/expand)))
+
+;;=======================================================
+#+end_src
+
+* desktop settings
+#+begin_src emacs-lisp :tangle yes
+;; (require 'recentf)
+(recentf-mode 1)
+(setq recentf-max-saved-items 500)
+(setq recentf-max-menu-items 60)
+ 
+;; save a list of open files in ~/.emacs.desktop
+;; save the desktop file automatically if it already exists
+(setq desktop-save 'if-exists)
+(desktop-save-mode 1)
+ 
+;; save a bunch of variables to the desktop file
+;; for lists specify the len of the maximal saved data also
+(setq desktop-globals-to-save
+      (append '((extended-command-history . 30)
+                (file-name-history        . 100)
+                (grep-history             . 30)
+                (compile-history          . 30)
+                (minibuffer-history       . 50)
+                (query-replace-history    . 60)
+                (read-expression-history  . 60)
+                (regexp-history           . 60)
+                (regexp-search-ring       . 20)
+                (search-ring              . 20)
+                (shell-command-history    . 50)
+                tags-file-name
+                register-alist)))
+#+end_src
+
+* filetypes
+#+begin_src emacs-lisp :tangle yes
+(add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-mode))
+(autoload 'bat-mode "dosbat" "\
+Major mode for editing DOS batch files.
+ 
+Special commands:
+ 
+Font lock mode:
+ 
+Turning on font lock mode causes various DOS batch syntactic
+structures to be hightlighted.  It is on by default.
+ 
+" t nil)
+(add-to-list 'auto-mode-alist '("\\.\\(?:bat\\|com\\|cmd\\)$" . bat-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+(autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
+(add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
+(add-to-list 'auto-mode-alist '("\\.json$" . js-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+#+end_src
+
+* keybindings
+#+begin_src emacs-lisp :tangle yes
+    ;; misc
+    (global-set-key (kbd "M-_") 'undo)
+    (global-set-key "\C-xra" 'append-to-register)
+    (global-set-key "\C-xrp" 'prepend-to-register)
+    (global-set-key (kbd "C-x C-p") 'camdez/show-buffer-file-name)
+    (global-set-key (kbd "C-z") 'shell)
+    (global-set-key (kbd "M-Z") (lambda (char) (interactive "cZap up to char backwards: ") (zap-to-char -1 char)))
+    (global-set-key [f11] 'gtd)
+    (global-set-key [(meta f11)] 'ibuffer)
+    (global-set-key [(meta f12)] 'recentf-open-files)
+    (global-set-key (kbd "M-R") 'revert-buffer)
+    (global-set-key (kbd "M-M") 'magit-status)
+    (global-set-key (kbd "C-c e") 'eval-and-replace)
+    (global-set-key (kbd "C-M-!") 'shell-with-fname-repl)
+  
+    ;; ace-jump
+    (define-key global-map (kbd "C-@") 'ace-jump-mode)
+    (define-key global-map (kbd "C-`") 'ace-jump-mode-pop-mark)
+  
+  
+    ;; org-mode
+    (global-set-key "\C-cl" 'org-store-link)
+    (global-set-key "\C-cc" 'org-capture)
+    (global-set-key "\C-ca" 'org-agenda)
+    (global-set-key "\C-cb" 'org-iswitchb)
+  
+    ;; smex
+    (global-set-key (kbd "M-x") 'smex)
+    (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+  
+    ;; ================
+    ;; ispell
+    ;; ================
+    (global-set-key (kbd "<f8>") 'ispell-word)
+    (global-set-key (kbd "C-<f8>") 'flyspell-mode)
+  
+  
+    ;; ==================================================
+    ;; expand-region
+    ;; ==================================================
+    (global-set-key (kbd "C-+") 'er/contract-region)
+    (global-set-key (kbd "C-;") 'er/expand-region)
+  
+    (global-set-key (kbd "C-:") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
+    (global-set-key (kbd "C-*") 'mc/mark-more-like-this-extended) ;;  Use arrow keys to quickly mark/skip next/previous occurances.
+  
+  (use-package projectile
+    :config
+        (setq projectile-use-git-grep t)
+        (projectile-global-mode t)
+    :bind-keymap
+        ("C-c p" . projectile-command-map))
+#+end_src
+
+* misc settings
+#+begin_src emacs-lisp :tangle yes
+(defalias 'yes-or-no-p 'y-or-n-p) ;
+(setq visible-bell t)
+(setq inhibit-startup-screen t)
+(show-paren-mode t)
+(setq display-time-24hr-format t)
+(setq display-time-day-and-date t)
+(display-time-mode t)
+(electric-indent-mode t)
+(electric-layout-mode t)
+(electric-pair-mode t)
+(column-number-mode t)
+
+(setq backup-by-copying-when-linked t)
+
+(setq iedit-transient-mark-sensitive nil)
+
+(setq split-height-threshold nil)
+(setq split-width-threshold 0)
+
+(setq tab-width 4)
+(setq c-basic-offset 4)
+
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward)
+
+;; cua
+(setq cua-delete-copy-to-register-0 nil)
+(setq cua-enable-cua-keys nil)
+(setq cua-enable-region-auto-help t)
+(setq cua-highlight-region-shift-only t)
+(setq cua-toggle-set-mark nil)
+
+;; =======
+;; ido-mode
+;; =======
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
+(ido-mode 1)
+(setq ido-create-new-buffer 'always)
+(setq ido-vertical-define-keys (quote C-n-C-p-up-down-left-right))
+ 
+;; ==================================================
+;; ace jump mode
+;; ==================================================
+(autoload
+  'ace-jump-mode
+  "ace-jump-mode"
+  "Emacs quick move minor mode"
+  t)
+(autoload
+  'ace-jump-mode-pop-mark
+  "ace-jump-mode"
+  "Ace jump back:-)"
+  t)
+(eval-after-load "ace-jump-mode"
+  '(progn
+     (ace-jump-mode-enable-mark-sync)
+     (setq ace-jump-mode-case-fold t)
+     )
+  )
+ 
+;; ====================
+;; multiple-cursors
+;; ====================
+(require 'multiple-cursors)
+(defvar jc/mc-search--last-term nil) 
+(define-key mc/keymap (kbd "C-s") 'jc/mc-search-forward)
+(define-key mc/keymap (kbd "C-r") 'jc/mc-search-backward)
+(define-key mc/keymap (kbd "C-:") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
+(define-key mc/keymap (kbd "C-*") 'mc/mark-more-like-this-extended) ;;  Use arrow keys to quickly mark/skip next/previous occurances.
+
+ 
+(require 'yasnippet)
+(define-key yas-minor-mode-map (kbd "<tab>") nil)
+(define-key yas-minor-mode-map (kbd "TAB") nil)
+(define-key yas-minor-mode-map (kbd "C-c C-i") 'yas-expand)
+(setq yas-also-auto-indent-first-line nil)
+(yas-global-mode t)
+(setq yas-prompt-functions (quote (yas-ido-prompt yas-x-prompt yas-dropdown-prompt yas-completing-prompt yas-no-prompt)))
+
+
+
+;; ==========
+;; japanese
+;; ==========
+(require 'mozc)  ; or (load-file "/path/to/mozc.el")
+(setq default-input-method "japanese-mozc")
+
+;; ======
+;; ispell
+;; ======
+(setq ispell-program-name "aspell")
+(setq ispell-personal-dictionary "~/.ispell")
+(require 'ispell)
+(add-hook 'c-mode-common-hook 'flyspell-prog-mode)
+(setq ispell-dictionary "british")
+ 
+;; =====================
+;; dired customizations
+;; =====================
+(require 'dired)
+(define-key dired-mode-map (kbd "<return>") 'dired-find-alternate-file) ; was dired-advertised-find-file
+(define-key dired-mode-map (kbd "^") (lambda () (interactive) (find-alternate-file "..")))  ; was dired-up-directory
+ 
+(defalias 'list-buffers 'ido-switch-buffer) ; always use ibuffer
+ 
+;; ===============
+;; better M-x
+;; ===============
+(require 'smex)
+(smex-initialize)
+(ido-vertical-mode t)
+(flx-ido-mode t)
+(ido-at-point-mode t)
+(defalias 'list-buffers 'ido-switch-buffer) ; always use ibuffer 
+
+;;==============================
+;; set up C mode
+;;==============================
+(setq c-default-style "linux" c-basic-offset 4)
+(setq c-offsets-alist '((inline-open +)
+    (block-open +)
+    (brace-list-open +)   ; all "opens" should be indented by the c-indent-level
+    (case-label +))       ; indent case labels by c-indent-level, too
+)
+
+#+end_src
+* local variables
+;; Local Variables: 
+;; eval: (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Reload?")(load-file user-init-file))) nil t) 
+;; eval: (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Tangle?")(org-babel-tangle))) nil t) 
+;; End:
+
