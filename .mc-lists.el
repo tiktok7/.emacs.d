@@ -16,15 +16,19 @@
 	dabbrev-expand
 	delete-indentation
 	indent-for-tab-command
+	insert-register
 	jc/mc-search-backward
 	jc/mc-search-forward
 	kill-region
 	markdown-cycle
 	markdown-exdent-or-delete
 	nxml-electric-slash
+	org-cycle
 	org-delete-char
 	org-end-of-line
 	org-force-self-insert
+	org-kill-line
+	org-metaright
 	org-self-insert-command
 	python-indent-electric-colon
 	))

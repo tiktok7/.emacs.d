@@ -6,7 +6,7 @@
 (setq wwgs-python-dev t)		; python development
 (setq wwgs-docker-dev t)
 
-(setq package-archives (quote (("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.org/packages/") ("orgmode" . "http://orgmode.org/elpa/"))))
+(setq package-archives (quote (("gnu" . "http://elpa.gnu.org/packages/") ("melpa" . "http://melpa.org/packages/"))))
 
 (when (fboundp 'windmove-default-keybindings)
   (windmove-default-keybindings))
@@ -49,28 +49,42 @@
      )
    )
 
-(when (or wwgs-python-dev wwgs-web-dev)
-          (use-package lsp-mode
-            :ensure t
-            :hook
-            (python-mode . lsp-deferred)
-            (php-mode . lsp-deferred)
-            :commands
-            (lsp lsp-deferred)
-            :init
-            (setq gc-cons-threshold 100000000)
-            (setq read-process-output-max (* 1024 1024)) ;; 1mb
-            (setq lsp-idle-delay 0.500)
-            :config
-            (add-to-list 'lsp-enabled-clients 'iph)))
-(when wwgs-python-dev (use-package lsp-jedi
-                        :ensure t
-                        :after
-                        (lsp-mode)
-                        :config
-                        (with-eval-after-load "lsp-mode"
-                          (add-to-list 'lsp-disabled-clients 'pyls)
-                          (add-to-list 'lsp-enabled-clients 'jedi))))
+(use-package lsp-mode
+    :ensure t
+    :hook
+  ;; if you want which-key integration
+    (lsp-mode . lsp-enable-which-key-integration)
+    (python-mode . lsp-deferred)
+    (php-mode . lsp-deferred)
+    :commands
+    (lsp lsp-deferred)
+    :init
+    (setq lsp-keymap-prefix "C-x p")
+    (setq gc-cons-threshold 100000000)
+    (setq read-process-output-max (* 1024 1024)) ;; 1mb
+    (setq lsp-idle-delay 0.500)
+    :config
+    (add-to-list 'lsp-enabled-clients 'iph)
+    (add-to-list 'lsp-language-id-configuration
+                 '(web-mode . "\\.liquid\\'"));; shopify
+    (lsp-register-client
+     (make-lsp-client :new-connection (lsp-stdio-connection "theme-check-language-server")
+                      :activation-fn (lsp-activate-on "\\.liquid\\'")
+                      :server-id 'theme-check)) ;; shopify
+    (add-to-list 'lsp-enabled-clients 'theme-check)
+    )
+  (use-package lsp-jedi
+    :ensure t
+    :after
+    (lsp-mode)
+    :config
+    (with-eval-after-load "lsp-mode"
+      (add-to-list 'lsp-disabled-clients 'pyls)
+      (add-to-list 'lsp-enabled-clients 'jedi)))
+
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+(use-package lsp-ui :commands lsp-ui-mode)
 
 (when wwgs-docker-dev
   (use-package docker-compose-mode
@@ -91,6 +105,7 @@
     :mode ("\\.tpl\\.php\\'" . web-mode)
     :mode ("\\.html\\.twig\\'" . web-mode)
     :mode ("\\.html?\\'" . web-mode)
+    :mode ("\\.liquid\\'" . web-mode)
     :bind(
           :map web-mode-map
                ("C-c b" . web-mode-buffer-indent)
@@ -146,14 +161,15 @@
   (interactive)
   (delete-process "Tern"))
 
-(defun my-paredit-nonlisp ()
-  "Turn on paredit mode for non-lisps."
-  (interactive)
-  (set (make-local-variable 'paredit-space-for-delimiter-predicates)
-       '((lambda (endp delimiter) nil)))
-  (paredit-mode 1))
+;; (defun my-paredit-nonlisp ()
+;;   "Turn on paredit mode for non-lisps."
+;;   (interactive)
+;;   (set (make-local-variable 'paredit-space-for-delimiter-predicates)
+;;        '((lambda (endp delimiter) nil)))
+;;   (paredit-mode 1))
 
-(add-hook 'js-mode-hook 'my-paredit-nonlisp) ;use with the above function
+;; (add-hook 'js-mode-hook 'my-paredit-nonlisp)
+                                        ;use with the above function
 
 (require 'web-mode)
 (setq web-mode-enable-auto-expanding t)
@@ -190,25 +206,34 @@
 (add-hook 'web-mode-before-auto-complete-hooks
     '(lambda ()
      (let ((web-mode-cur-language
-  	    (web-mode-language-at-pos)))
+            (web-mode-language-at-pos)))
                (if (string= web-mode-cur-language "php")
-    	   (yas-activate-extra-mode 'php-mode)
-      	 (yas-deactivate-extra-mode 'php-mode))
+           (yas-activate-extra-mode 'php-mode)
+         (yas-deactivate-extra-mode 'php-mode))
                (if (string= web-mode-cur-language "css")
-    	   (setq emmet-use-css-transform t)
-      	   (setq emmet-use-css-transform nil)))))
+           (setq emmet-use-css-transform t)
+           (setq emmet-use-css-transform nil)))))
 
-(when wwgs-python-dev (use-package python
-  :ensure t
-  :mode ("\\.py\\'" . python-mode)
-  :interpreter ("python" . python-mode)
-  :requires python-mode
-  :config
-      (setq python-check-command "flake8")
-      (setq python-indent-guess-indent-offset nil)
-      (setq python-shell-buffer-name "Python")
-      (setq python-shell-interpreter "python3")
-      ))
+(when wwgs-python-dev
+  (use-package python
+    :ensure t
+    :mode ("\\.py\\'" . python-mode)
+    :interpreter ("python" . python-mode)
+    :requires python-mode
+    :config
+    (setq python-check-command "flake8")
+    (setq python-indent-guess-indent-offset nil)
+    (setq python-shell-buffer-name "Python")
+    (setq python-shell-interpreter "python3")
+    )
+  (use-package pipenv
+    :hook (python-mode . pipenv-mode)
+    :init
+    (setq
+     pipenv-projectile-after-switch-function
+     #'pipenv-projectile-after-switch-extended))
+
+  )
 
 (setq org-agenda-custom-commands (quote (("w" todo "WAITING" nil) ("n" todo "NEXT" nil) ("d" "Agenda + Next Actions" ((agenda) (todo "NEXT"))))))
 (setq org-agenda-files (quote ("~")))
@@ -218,6 +243,8 @@
 (setq org-agenda-time-grid (quote ((daily weekly today require-timed) #("----------------" 0 16 (org-heading t)) (800 1000 1200 1400 1600 1800 2000))))
 (setq org-ascii-text-width 151)
 (setq org-babel-ditaa-java-cmd "/usr/bin/ditaa")
+(setq org-plantuml-jar-path
+    (expand-file-name "~/.local/share/plantuml/plantuml.jar"))
 (setq org-babel-load-languages (quote ((emacs-lisp . t) (python . t) (perl . t) (dot . t) (ditaa . t) (plantuml . t))))
 (setq org-clock-out-remove-zero-time-clocks t)
 (setq org-columns-default-format "%25ITEM %TODO %3PRIORITY %TAGS %Effort{:} %6CLOCKSUM{Total}")
@@ -254,6 +281,9 @@
    ("j" "Journal" entry (file+datetree "~/org/journal.org")
              "* %?\nEntered on %U\n  %i\n  %a"))
 )
+(use-package tern-auto-complete
+       :ensure t
+       )
 ;; (setq org-default-notes-file (concat org-directory "~/notes.org"))
 (setq org-startup-indented t)
 
@@ -267,11 +297,25 @@
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 
-(require 'company)                                   ; load company mode
-(require 'company-web-html)                          ; load company mode html backend
+(use-package company
+  :after lsp-mode
+  :hook (prog-mode . company-mode)
+;; :bind (:map company-active-map
+;;        ("<tab>" . company-complete-selection))
+;;       (:map lsp-mode-map
+;;        ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+
+(use-package company-web-html
+  :after company)                          ; load company mode html backend
 ;; and/or
-(require 'company-web-jade)                          ; load company mode jade backend
-(require 'company-web-slim)                          ; load company mode slim backend
+(use-package company-web-jade
+  :after company)                          ; load company mode jade backend
+(use-package company-web-slim
+  :after company)                          ; load company mode slim backend
 
 ;; ===========================
 ;; grab filename to kill ring
@@ -385,23 +429,29 @@
 (add-to-list 'auto-mode-alist '("\\.g4\\'" . antlr-mode))
 (autoload 'bat-mode "dosbat" "\
 Major mode for editing DOS batch files.
- 
+
 Special commands:
- 
+
 Font lock mode:
- 
+
 Turning on font lock mode causes various DOS batch syntactic
 structures to be hightlighted.  It is on by default.
- 
+
 " t nil)
 (add-to-list 'auto-mode-alist '("\\.\\(?:bat\\|com\\|cmd\\)$" . bat-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 (autoload 'qml-mode "qml-mode" "Editing Qt Declarative." t)
 (add-to-list 'auto-mode-alist '("\\.qml$" . qml-mode))
-(add-to-list 'auto-mode-alist '("\\.json$" . js-mode))
+(add-to-list 'auto-mode-alist '("\\.json$" . json-mode))
+(add-hook 'json-mode-hook #'flycheck-mode)
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
-;; misc
+;; which-key
+(use-package which-key
+      :ensure t
+      )
+
+  ;; misc
   (global-set-key (kbd "M-_") 'undo)
   (global-set-key "\C-xra" 'append-to-register)
   (global-set-key "\C-xrp" 'prepend-to-register)
@@ -465,6 +515,7 @@ structures to be hightlighted.  It is on by default.
 (electric-layout-mode t)
 (electric-pair-mode t)
 (column-number-mode t)
+(global-subword-mode t)
 
 (setq backup-by-copying-when-linked t)
 
@@ -494,7 +545,7 @@ structures to be hightlighted.  It is on by default.
 (ido-mode 1)
 (setq ido-create-new-buffer 'always)
 (setq ido-vertical-define-keys (quote C-n-C-p-up-down-left-right))
- 
+
 ;; ==================================================
 ;; ace jump mode
 ;; ==================================================
@@ -514,7 +565,7 @@ structures to be hightlighted.  It is on by default.
      (setq ace-jump-mode-case-fold t)
      )
   )
- 
+
 ;; ====================
 ;; multiple-cursors
 ;; ====================
@@ -525,7 +576,7 @@ structures to be hightlighted.  It is on by default.
 (define-key mc/keymap (kbd "C-:") 'mc/mark-next-like-this) ;;  Adds a cursor and region at the next part of the buffer forwards that matches the current region.
 (define-key mc/keymap (kbd "C-*") 'mc/mark-more-like-this-extended) ;;  Use arrow keys to quickly mark/skip next/previous occurances.
 
- 
+
 (require 'yasnippet)
 (define-key yas-minor-mode-map (kbd "<tab>") nil)
 (define-key yas-minor-mode-map (kbd "TAB") nil)
@@ -550,16 +601,16 @@ structures to be hightlighted.  It is on by default.
 (require 'ispell)
 (add-hook 'c-mode-common-hook 'flyspell-prog-mode)
 (setq ispell-dictionary "british")
- 
+
 ;; =====================
 ;; dired customizations
 ;; =====================
 (require 'dired)
 (define-key dired-mode-map (kbd "<return>") 'dired-find-alternate-file) ; was dired-advertised-find-file
 (define-key dired-mode-map (kbd "^") (lambda () (interactive) (find-alternate-file "..")))  ; was dired-up-directory
- 
+
 (defalias 'list-buffers 'ido-switch-buffer) ; always use ibuffer
- 
+
 ;; ===============
 ;; better M-x
 ;; ===============
